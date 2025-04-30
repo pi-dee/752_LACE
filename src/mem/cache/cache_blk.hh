@@ -52,6 +52,7 @@
 #include <limits>
 #include <list>
 #include <string>
+#include "debug/CacheAx.hh"
 
 #include "base/printable.hh"
 #include "base/types.hh"
@@ -108,9 +109,6 @@ class CacheBlk : public TaggedEntry
      * meaningful if the block is valid.
      */
     Tick whenReady = 0;
-
-    bool valid_1 = true;
-    bool valid_2 = true;
 
   protected:
     /**
@@ -330,6 +328,23 @@ class CacheBlk : public TaggedEntry
         const int src_requestor_ID, const uint32_t task_ID,
         const uint64_t partition_id);
     using TaggedEntry::insert;
+
+    /**
+     * ECE757
+     *   Using the one from TaggedEntry so we can use either one
+     *   depends on the parameter provided.
+     *
+     * @param first_half True for inserting first half and vice versa
+     * @param tag Block address tag.
+     * @param is_secure Whether the block is in secure space or not.
+     * @param src_requestor_ID The source requestor ID.
+     * @param task_ID The new task ID.
+     * @param partition_id The source partition ID.
+     */
+    void insertAx(const KeyType &tag, bool first_half,
+        const int src_requestor_ID, const uint32_t task_ID,
+        const uint64_t partition_id);
+    using TaggedEntry::insertAx;
 
     /**
      * Track the fact that a local locked was issued to the
