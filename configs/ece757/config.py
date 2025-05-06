@@ -57,9 +57,7 @@ default_binary = os.path.join(
 
 # Binary to execute
 SimpleOpts.add_option("binary", nargs="?", default=default_binary)
-parser.add_argument("--args", nargs="*", default=[],
-                    help="Command line arguments to pass to the binary, how big the size we want for an array. \
-                          For instance, 2 for 2KB size, 4 for 4KB size, etc.")
+SimpleOpts.add_option("--size", nargs="*", default=2)
 
 # Finalize the arguments and grab the args so we can pass it on to our objects
 args = SimpleOpts.parse_args()
@@ -131,7 +129,8 @@ system.workload = SEWorkload.init_compatible(args.binary)
 process = Process()
 # Set the command
 # cmd is a list which begins with the executable (like argv)
-process.cmd = [args.binary] + options.args
+
+process.cmd = [args.binary] + args.size
 # Set the cpu to use the process as its workload and create thread contexts
 system.cpu.workload = process
 system.cpu.createThreads()

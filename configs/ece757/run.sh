@@ -12,7 +12,7 @@ for size in $(seq 2 2 32); do
     echo "Running simulation with array size: ${size}KB"
     mkdir -p "results/${size}kb"
     
-    ${GEM5_PATH} -d "results/${size}kb" ${SIM_SCRIPT} --binary="../../tests/test-progs/my-tests/lax" --args="${size}"
+    ${GEM5_PATH} -d "results/${size}kb" ${SIM_SCRIPT} ../../tests/test-progs/my-tests/lax --size="${size}"
     
     echo "Completed run for size ${size}KB"
     echo "----------------------------------------"
