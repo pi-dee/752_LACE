@@ -59,7 +59,9 @@ L2LatencyTracker::recordLatency(MachineID mid, Addr addr, Cycles lat)
     {
         s.ewma = (double)lat;
     } else {
-        s.ewma = ALPHA * (double)lat + (1.0 - ALPHA) * s.ewma;
+        if(lat <= Cycles(125)) {
+            s.ewma = ALPHA * (double)lat + (1.0 - ALPHA) * s.ewma;
+        }
     }
     s.samples++;
 }

@@ -63,9 +63,7 @@ LatencyAwareBRRIP::getVictim(const ReplacementCandidates& candidates) const
         double score = rrpv_importance + (m_k_factor * lat);
 
         // [DEBUG] Print details for EVERY candidate
-        DPRINTF(CacheRepl, "  Cand Addr: %#x | RRPV: %2.0f 
-            | Latency: %6.2f | Score: %6.2f\n", 
-                addr, rrpv_importance, lat, score);
+        DPRINTF(CacheRepl, " Cand Addr: %#x | RRPV: %2.0f | Latency: %6.2f | Score: %6.2f\n", addr, rrpv_importance, lat, score);
 
         if (score < min_score) {
             min_score = score;

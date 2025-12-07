@@ -58,6 +58,8 @@ class L3Cache(MESI_Three_Level_L2Cache_Controller):
         self.L2cache = RubyCache(
             size=l3_size,
             assoc=l3_assoc,
+            dataAccessLatency=16,
+            tagAccessLatency=16,
             start_index_bit=self.getIndexBit(num_l3Caches, cache_line_size),
         )
 
