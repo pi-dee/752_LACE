@@ -1,0 +1,2 @@
+cd /tmp; ls -l /home/gem5/parsec-benchmark/pkgs/apps/blackscholes/inputs/; tar xf /home/gem5/parsec-benchmark/pkgs/apps/blackscholes/inputs/input_simsmall.tar; if [ -d inputs ]; then mv inputs/* .; fi; ls -l; export LD_LIBRARY_PATH=/home/gem5/parsec-benchmark/pkgs/libs/hooks/inst/amd64-linux.gcc-hooks/lib:$LD_LIBRARY_PATH; /home/gem5/parsec-benchmark/pkgs/apps/blackscholes/inst/amd64-linux.gcc-hooks/bin/blackscholes 8 in_4K.txt prices.txt;
+m5 exit;

@@ -156,6 +156,7 @@ machine(MachineType:L1Cache, "MESI Directory L1 Cache CMP")
     DataBlock DataBlk,                desc="Buffer for the data block";
     bool Dirty, default="false",   desc="data is dirty";
     int pendingAcks, default="0", desc="number of pending acks";
+    Cycles IssueTime,           desc="Time when the L2 sent the request to memory";
   }
 
   structure(TBETable, external="yes") {
@@ -164,6 +165,13 @@ machine(MachineType:L1Cache, "MESI Directory L1 Cache CMP")
     void deallocate(Addr);
     bool isPresent(Addr);
   }
+
+  structure(L2LatencyTracker, external="yes") {
+    void recordLatency(MachineID, Addr, Cycles);
+  }
+
+  L2LatencyTracker tracker, desc="Tracks L2 miss latency";
+
 
   TBETable TBEs, template="<L1Cache_TBE>", constructor="m_number_of_TBEs";
 
@@ -178,6 +186,7 @@ machine(MachineType:L1Cache, "MESI Directory L1 Cache CMP")
   void wakeUpBuffers(Addr a);
   void wakeUpAllBuffers(Addr a);
   void profileMsgDelay(int virtualNetworkType, Cycles c);
+  Cycles curCycle();
 
   // inclusive cache returns L1 entries only
   Entry getCacheEntry(Addr addr), return_by_pointer="yes" {
@@ -785,6 +794,21 @@ machine(MachineType:L1Cache, "MESI Directory L1 Cache CMP")
     cache.profileDemandHit();
   }
 
+ action(z_recordIssueTime, "\z", desc="Record the time we sent a request to memory") {
+    assert(is_valid(tbe));
+    tbe.IssueTime := curCycle();
+  }
+
+  action(pl_printLatency, "\pl", desc="Calculate, record, and print L2 miss latency") {
+    assert(is_valid(tbe));
+    
+    // Calculate Latency
+    Cycles lat := curCycle() - tbe.IssueTime;
+
+    DPRINTF(ProtocolTrace, "L2MissLatency: Addr %#x Latency %d cycles\n", address, lat);
+
+    tracker.recordLatency(machineID, address, lat);
+  }
 
   //*****************************************************
   // TRANSITIONS
@@ -799,6 +823,7 @@ machine(MachineType:L1Cache, "MESI Directory L1 Cache CMP")
   transition(I, Load, IS) {
     oo_allocateCacheBlock;
     i_allocateTBE;
+    z_recordIssueTime;
     a_issueGETS;
     uu_profileMiss;
     k_popL0RequestQueue;
@@ -807,6 +832,7 @@ machine(MachineType:L1Cache, "MESI Directory L1 Cache CMP")
   transition(I, Store, IM) {
     oo_allocateCacheBlock;
     i_allocateTBE;
+    z_recordIssueTime;
     b_issueGETX;
     uu_profileMiss;
     k_popL0RequestQueue;
@@ -960,6 +986,7 @@ machine(MachineType:L1Cache, "MESI Directory L1 Cache CMP")
 
   transition(IS, Data_all_Acks, S) {
     u_writeDataFromL2Response;
+    pl_printLatency;
     h_data_to_l0;
     s_deallocateTBE;
     o_popL2ResponseQueue;
@@ -968,6 +995,7 @@ machine(MachineType:L1Cache, "MESI Directory L1 Cache CMP")
 
   transition(IS_I, Data_all_Acks, I) {
     u_writeDataFromL2Response;
+    pl_printLatency;
     h_stale_data_to_l0;
     s_deallocateTBE;
     ff_deallocateCacheBlock;
@@ -977,6 +1005,7 @@ machine(MachineType:L1Cache, "MESI Directory L1 Cache CMP")
 
   transition(IS, DataS_fromL1, S) {
     u_writeDataFromL2Response;
+    pl_printLatency;
     j_sendUnblock;
     h_data_to_l0;
     s_deallocateTBE;
@@ -986,6 +1015,7 @@ machine(MachineType:L1Cache, "MESI Directory L1 Cache CMP")
 
   transition(IS_I, DataS_fromL1, I) {
     u_writeDataFromL2Response;
+    pl_printLatency;
     j_sendUnblock;
     h_stale_data_to_l0;
     s_deallocateTBE;
@@ -997,6 +1027,7 @@ machine(MachineType:L1Cache, "MESI Directory L1 Cache CMP")
   // directory is blocked when sending exclusive data
   transition({IS,IS_I}, Data_Exclusive, E) {
     u_writeDataFromL2Response;
+    pl_printLatency;
     hh_xdata_to_l0;
     jj_sendExclusiveUnblock;
     s_deallocateTBE;
@@ -1012,12 +1043,14 @@ machine(MachineType:L1Cache, "MESI Directory L1 Cache CMP")
 
   transition(IM, Data, SM) {
     u_writeDataFromL2Response;
+    pl_printLatency;
     q_updateAckCount;
     o_popL2ResponseQueue;
   }
 
   transition(IM, Data_all_Acks, M) {
     u_writeDataFromL2Response;
+    pl_printLatency;
     hh_xdata_to_l0;
     jj_sendExclusiveUnblock;
     s_deallocateTBE;

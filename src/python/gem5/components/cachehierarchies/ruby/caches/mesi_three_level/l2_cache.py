@@ -32,6 +32,7 @@ from m5.objects import (
     MessageBuffer,
     RubyCache,
     RubyPrefetcher,
+    LatencyAwareBRRIPRP,
 )
 
 from ......isas import ISA
@@ -60,6 +61,7 @@ class L2Cache(MESI_Three_Level_L1Cache_Controller):
         cluster_id,
         target_isa: ISA,
         clk_domain: ClockDomain,
+        node_id,
     ):
         super().__init__()
 
@@ -69,6 +71,7 @@ class L2Cache(MESI_Three_Level_L1Cache_Controller):
             assoc=l2_assoc,
             start_index_bit=self.getBlockSizeBits(cache_line_size),
             is_icache=False,
+            replacement_policy=BRRIPRP(node_id=node_id, k_factor=1.0), # CHANGE THIS
         )
         # l2_select_num_bits is ruby backend terminology.
         # In stdlib terms, it is number of bits for selecting L3 cache.

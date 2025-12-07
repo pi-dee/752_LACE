@@ -51,7 +51,9 @@ from .caches.mesi_three_level.l1_cache import L1Cache
 from .caches.mesi_three_level.l2_cache import L2Cache
 from .caches.mesi_three_level.l3_cache import L3Cache
 from .topologies.simple_pt2pt import SimplePt2Pt
-
+#from .topologies.mesh_xy import Mesh_XY
+from .topologies.garnet_mesh import GarnetMesh
+from m5.objects import GarnetNetwork, BasicRouter, GarnetExtLink, GarnetIntLink
 
 class MESIThreeLevelCacheHierarchy(
     AbstractRubyCacheHierarchy, AbstractThreeLevelCacheHierarchy
@@ -85,7 +87,7 @@ class MESIThreeLevelCacheHierarchy(
             l3_size=l3_size,
             l3_assoc=l3_assoc,
         )
-
+        print("Creating MESI Three Level Cache Hierarchy")
         self._num_l3_banks = num_l3_banks
 
     @overrides(AbstractCacheHierarchy)
@@ -101,7 +103,14 @@ class MESIThreeLevelCacheHierarchy(
         # MESI_Three_Level needs 3 virtual networks
         self.ruby_system.number_of_virtual_networks = 3
 
-        self.ruby_system.network = SimplePt2Pt(self.ruby_system)
+        #self.ruby_system.network = SimplePt2Pt(self.ruby_system)
+        num_cores = board.get_processor().get_num_cores()
+        self.ruby_system.network = GarnetMesh(
+            ruby_system=self.ruby_system,
+            num_routers=num_cores, 
+            num_rows=4,
+            
+        )
         self.ruby_system.network.number_of_virtual_networks = 3
 
         self._l1_controllers = []
@@ -163,6 +172,7 @@ class MESIThreeLevelCacheHierarchy(
                 cluster_id=0,
                 target_isa=board.processor.get_isa(),
                 clk_domain=board.get_clock_domain(),
+                node_id=core_idx,
             )
 
             l2_cache.ruby_system = self.ruby_system
@@ -232,7 +242,7 @@ class MESIThreeLevelCacheHierarchy(
             + self._directory_controllers
             + self._dma_controllers
         )
-        self.ruby_system.network.setup_buffers()
+        #self.ruby_system.network.setup_buffers()
 
         # Set up a proxy port for the system_port. Used for load binaries and
         # other functional-only things.
