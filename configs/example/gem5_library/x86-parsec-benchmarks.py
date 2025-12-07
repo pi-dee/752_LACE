@@ -126,7 +126,7 @@ from gem5.components.cachehierarchies.ruby.mesi_three_level_cache_hierarchy impo
 cache_hierarchy = MESIThreeLevelCacheHierarchy(
     l1d_size="16KiB",
     l1d_assoc=4,
-    l1i_size="316KiB",
+    l1i_size="16KiB",
     l1i_assoc=4,
     l2_size="512KiB",
     l2_assoc=8,

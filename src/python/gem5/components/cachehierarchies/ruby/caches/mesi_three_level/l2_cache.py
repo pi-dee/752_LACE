@@ -74,8 +74,8 @@ class L2Cache(MESI_Three_Level_L1Cache_Controller):
             is_icache=False,
             dataAccessLatency=8,
             tagAccessLatency=8,
-            replacement_policy=LatencyAwareBRRIPRP(node_id=node_id, k_factor=1.0), # CHANGE THIS
-            # replacement_policy=BRRIPRP()# CHANGE THIS
+            replacement_policy=LatencyAwareBRRIPRP(node_id=node_id, k_factor=0.25, num_bits=4) # CHANGE THIS
+            # replacement_policy=BRRIPRP(num_bits=4)
         )
         # l2_select_num_bits is ruby backend terminology.
         # In stdlib terms, it is number of bits for selecting L3 cache.

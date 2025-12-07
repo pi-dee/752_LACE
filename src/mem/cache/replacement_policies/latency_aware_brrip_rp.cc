@@ -12,7 +12,7 @@ namespace gem5 {
 namespace replacement_policy {
 
 LatencyAwareBRRIP::LatencyAwareBRRIP(const Params &p)
-    : BRRIP(p), m_node_id(p.node_id), m_k_factor(p.k_factor)
+    : BRRIP(p), m_node_id(p.node_id), m_k_factor(p.k_factor), m_num_bits(p.num_bits)
 {
 }
 
@@ -60,7 +60,10 @@ LatencyAwareBRRIP::getVictim(const ReplacementCandidates& candidates) const
         }
 
         // 3. Final Score
-        double score = rrpv_importance + (m_k_factor * lat);
+        double q = std::min(pow(2, m_num_bits) - 1, (lat - 16) / 7);
+        double nls = (pow(2, m_num_bits) - 1) - q;
+
+        double score = ((1-m_k_factor) * rrpv_importance) + (m_k_factor * lat);
 
         // [DEBUG] Print details for EVERY candidate
         DPRINTF(CacheRepl, " Cand Addr: %#x | RRPV: %2.0f | Latency: %6.2f | Score: %6.2f\n", addr, rrpv_importance, lat, score);
