@@ -64,6 +64,8 @@ class DDR4_2400_16x4(DRAMInterface):
     # size of device
     device_size = "1GiB"
 
+    page_policy = "close"
+
     # 16x4 configuration, 16 devices each with a 4-bit interface
     device_bus_width = 4
 

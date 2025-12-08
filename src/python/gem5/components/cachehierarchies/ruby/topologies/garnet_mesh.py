@@ -31,14 +31,14 @@ class GarnetMesh(GarnetNetwork):
         # Calculate rows and columns
         rows = int(self.num_rows)
         cols = int(num_routers / rows)
-        link_latency = 3
+        link_latency = 1
         
         if cols * rows != num_routers:
              print(f"Warning: Mesh {rows}x{cols} != {num_routers} routers. Layout may be irregular.")
 
         # 2. Create Routers (Exactly 16 for your case)
         self.routers = [
-            GarnetRouter(router_id=i, latency=5) for i in range(num_routers)
+            GarnetRouter(router_id=i, latency=1) for i in range(num_routers)
         ]
 
         # 3. Create Network Interfaces and External Links

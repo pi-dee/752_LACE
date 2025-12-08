@@ -126,7 +126,7 @@ from gem5.components.cachehierarchies.ruby.mesi_three_level_cache_hierarchy impo
 cache_hierarchy = MESIThreeLevelCacheHierarchy(
     l1d_size="16KiB",
     l1d_assoc=4,
-    l1i_size="316KiB",
+    l1i_size="16KiB",
     l1i_assoc=4,
     l2_size="512KiB",
     l2_assoc=8,
@@ -181,10 +181,6 @@ command = (
     +f"cd /home/gem5/parsec-benchmark;"
     + "source env.sh;"
     + f"parsecmgmt -a run -p {args.benchmark} -c gcc-hooks -i {args.size}         -n 16;"
-    + "sync;"
-    + "/sbin/m5 writefile prices.txt;"
-    + "find . -name prices.txt | xargs cat;"
-    + "ls;"
     + "m5 exit;" 
 )
 board.set_kernel_disk_workload(
@@ -213,7 +209,7 @@ def handle_workbegin():
 def handle_workend():
     print("Dump stats at the end of the ROI!")
     m5.stats.dump()
-    yield False
+    yield True
 
 
 simulator = Simulator(
