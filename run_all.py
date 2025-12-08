@@ -8,23 +8,22 @@ benchmarks = [
     "fluidanimate",
     "raytrace",
     "dedup",
-    "blacksholes",
+    "blackscholes",
     "bodytrack",
 ]
 
 
 def run_simulation(bench_name):
     # Ensure the output directory exists (optional, gem5 usually creates it)
-    outdir = f"{bench_name}_baseline"
+    outdir = f"{bench_name}_k0.75"
 
     cmd = [
         "./build/X86/gem5.opt",
-        "--defug-flag=LACE",
+        "--debug-flag=LACE",
         f"--outdir={outdir}",  # Unique output directory for stats
         "configs/example/gem5_library/x86-parsec-benchmarks.py",
         f"--benchmark={bench_name}",
         "--size=simsmall",
-        "> output.log",
     ]
 
     # Redirect stdout/stderr to a log file
