@@ -2,6 +2,7 @@
 #include "base/logging.hh"
 #include "base/trace.hh"
 #include "debug/CacheRepl.hh"
+#include "debug/LACE.hh"
 #include "debug/RubyCache.hh"
 #include "params/LatencyAwareBRRIPRP.hh"
 #include "mem/cache/replacement_policies/latency_aware_brrip_rp.hh"
@@ -12,7 +13,7 @@ namespace gem5 {
 namespace replacement_policy {
 
 LatencyAwareBRRIP::LatencyAwareBRRIP(const Params &p)
-    : BRRIP(p), m_node_id(p.node_id), m_k_factor(p.k_factor)
+    : BRRIP(p), m_node_id(p.node_id), m_k_factor(p.k_factor), m_num_bits(p.num_bits)
 {
 }
 
@@ -24,6 +25,8 @@ LatencyAwareBRRIP::getVictim(const ReplacementCandidates& candidates) const
 
     ReplaceableEntry* victim = candidates[0];
     double min_score = 1.0e100; 
+    double victim_rrpv = 0.0;
+    double victim_lat = 0.0;
 
     // Reconstruct the MachineID locally
     // Since we are only using this for L2 Caches, 
@@ -34,7 +37,7 @@ LatencyAwareBRRIP::getVictim(const ReplacementCandidates& candidates) const
 
     Addr addr;
     // [DEBUG] Start of decision
-    DPRINTF(CacheRepl, "--- Eviction Decision Start ---\n");
+    DPRINTF(LACE, "--- Eviction Decision Start ---\n");
 
     for (const auto& candidate : candidates) {
         
@@ -60,22 +63,32 @@ LatencyAwareBRRIP::getVictim(const ReplacementCandidates& candidates) const
         }
 
         // 3. Final Score
-        double score = rrpv_importance + (m_k_factor * lat);
+        double q = std::min(pow(2, m_num_bits) - 1, (lat - 16) / 7);
+        double nls = (pow(2, m_num_bits) - 1) - q;
+
+        double score = ((1-m_k_factor) * rrpv_importance) + (m_k_factor * nls);
 
         // [DEBUG] Print details for EVERY candidate
-        DPRINTF(CacheRepl, " Cand Addr: %#x | RRPV: %2.0f | Latency: %6.2f | Score: %6.2f\n", addr, rrpv_importance, lat, score);
+        DPRINTF(LACE, " Cand Addr: %#x | RRPV: %2.0f | Latency: %6.2f | Score: %6.2f\n", addr, rrpv_importance, lat, score);
 
         if (score < min_score) {
             min_score = score;
             victim = candidate;
+
+            victim_rrpv = rrpv_importance;
+            victim_lat = lat;
         }
     }
 
     // [DEBUG] Print the winner
     ruby::AbstractCacheEntry *victim_entry = 
             static_cast<ruby::AbstractCacheEntry *>(victim);
-    DPRINTF(CacheRepl, ">>> EVICTING: %#x (Score: %6.2f)\n", 
-            victim_entry ? victim_entry->m_Address : 0, min_score);
+
+    DPRINTF(LACE, ">>> EVICTING: %#x | RRPV: %2.0f | Latency: %6.2f | Score: %6.2f\n", 
+            victim_entry ? victim_entry->m_Address : 0, 
+            victim_rrpv, 
+            victim_lat, 
+            min_score);
 
     // Standard BRRIP Aging logic...
     int diff = std::static_pointer_cast<BRRIPReplData>(

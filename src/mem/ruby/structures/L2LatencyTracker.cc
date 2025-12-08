@@ -57,7 +57,9 @@ L2LatencyTracker::recordLatency(MachineID mid, Addr addr, Cycles lat)
     s.last = lat;
     if (s.samples == 0) 
     {
-        s.ewma = (double)lat;
+        // Set to 16 the first time we see this block?
+        s.ewma = 16;
+        // s.ewma = (double)lat;
     } else {
         if(lat <= Cycles(125)) {
             s.ewma = ALPHA * (double)lat + (1.0 - ALPHA) * s.ewma;

@@ -48,4 +48,6 @@ Source('tree_plru_rp.cc')
 Source('weighted_lru_rp.cc')
 Source('latency_aware_brrip_rp.cc')
 
+DebugFlag('LACE', 'Debug flag for Latency Aware Cache Eviction')
+
 GTest('replaceable_entry.test', 'replaceable_entry.test.cc')

@@ -14,6 +14,7 @@ class LatencyAwareBRRIP : public BRRIP
     // Store the ID relative to L2Cache
     int m_node_id;
     double m_k_factor;
+    int m_num_bits;
 
   public:
     typedef LatencyAwareBRRIPRPParams Params;
